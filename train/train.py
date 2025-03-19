@@ -2,18 +2,16 @@
 # coding: utf-8
 
 import os
-
 import pandas as pd
+import numpy as np
 
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
-
 from sklearn.pipeline import make_pipeline
 
-
-import mlflow 
-
+import mlflow
+from mlflow.exceptions import MlflowException
 
 
 def read_dataframe(filename):
@@ -28,11 +26,11 @@ def read_dataframe(filename):
 
     categorical = ['PULocationID', 'DOLocationID']
     df[categorical] = df[categorical].astype(str)
-    
+
     return df
 
 
-def train(train_date='2021-01', validation_date='2022-02'):
+def train(train_date='2022-01', validation_date='2022-02'):
     train_path = f'./green_tripdata_{train_date}.parquet'
     validation_path = f'./green_tripdata_{validation_date}.parquet'
 
@@ -54,27 +52,34 @@ def train(train_date='2021-01', validation_date='2022-02'):
             'categorical': categorical,
             'numerical': numerical,
         })
-        
+
         pipeline = make_pipeline(
             DictVectorizer(),
             LinearRegression()
         )
-        
+
         pipeline.fit(train_dicts, y_train)
         y_pred = pipeline.predict(val_dicts)
 
-        rmse = mean_squared_error(y_val, y_pred, squared=False)
-        print(f'RMSE on validation is {rmse}')
+        rmse = np.sqrt(mean_squared_error(y_val, y_pred))
+        print(f'✅ RMSE on validation is {rmse}')
         mlflow.log_metric('rmse', rmse)
-        
-        mlflow.sklearn.log_model(pipeline, 'model')
+
+        mlflow.sklearn.log_model(pipeline, artifact_path='model')  # Save model
 
 
 def run():
-    MLFLOW_TRACKING_URI = os.getenv('MLFLOW_TRACKING_URI', 'http://localhost:5000')
+    # ✅ Set tracking URI to local MLflow server
+    mlflow.set_tracking_uri("http://localhost:5000")
 
-    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-    mlflow.set_experiment("nyc-taxi-experiment")
+    experiment_name = "nyc-taxi-experiment"
+
+    try:
+        mlflow.create_experiment(name=experiment_name)
+    except MlflowException:
+        pass  # already exists
+
+    mlflow.set_experiment(experiment_name)
 
     train(train_date='2022-01', validation_date='2022-02')
 
