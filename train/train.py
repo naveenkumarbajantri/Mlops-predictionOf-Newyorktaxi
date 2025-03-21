@@ -69,8 +69,8 @@ def train(train_date='2022-01', validation_date='2022-02'):
 
 
 def run():
-    # ✅ Set tracking URI to local MLflow server
-    mlflow.set_tracking_uri("http://localhost:5000")
+    # ✅ Set tracking URI to local MLflow file system for GitHub Actions
+    mlflow.set_tracking_uri("file:///./train/mlruns")
 
     experiment_name = "nyc-taxi-experiment"
 
