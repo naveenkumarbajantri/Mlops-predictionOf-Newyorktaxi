@@ -1,1 +1,36 @@
 
+name: Train ML Model
+
+on:
+  push:
+    branches:
+      - main  # or 'master' based on your default branch
+    paths:
+      - 'train/**'
+      - '.github/workflows/train-model.yml'
+      - 'requirements.txt'
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v3
+
+      - name: ⚙️ Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: 📦 Install dependencies
+        working-directory: ./train
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🧠 Run Training Script
+        working-directory: ./train
+        run: |
+          export MLFLOW_TRACKING_URI=http://localhost:5000
+          python train.py
