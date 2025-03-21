@@ -64,13 +64,12 @@ def train(train_date='2022-01', validation_date='2022-02'):
         print(f'✅ RMSE on validation is {rmse}')
         mlflow.log_metric('rmse', rmse)
 
-        mlflow.sklearn.log_model(pipeline, artifact_path='model')  # Save model
+        mlflow.sklearn.log_model(pipeline, artifact_path='model')
 
 
 def run():
-    # ✅ Use relative mlruns path compatible with GitHub Actions
-    tracking_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../mlruns"))
-    mlflow.set_tracking_uri(tracking_path)
+    # ✅ Use relative mlruns path for GitHub Actions compatibility
+    mlflow.set_tracking_uri("file:./mlruns")
 
     experiment_name = "nyc-taxi-experiment"
 
