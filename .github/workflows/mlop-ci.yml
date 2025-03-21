@@ -1,0 +1,39 @@
+name: CI/CD/CT - Train and Predict
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.py'
+      - 'train/**'
+      - 'serve/**'
+      - 'test-requirements.py'   # ✅ updated here
+      - '.github/workflows/mlops-ci.yml'
+
+jobs:
+  mlops:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
+
+      - name: ⚙️ Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: 📦 Install dependencies
+        run: |
+          pip install -r train/requirements.txt
+          pip install mlflow pandas scikit-learn requests
+
+      - name: 🧠 Run training script
+        working-directory: ./train
+        run: |
+          python train.py
+
+      - name: 🔍 Run test prediction
+        run: |
+          python test-requirements.py   # ✅ updated script name
