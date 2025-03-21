@@ -31,4 +31,4 @@ jobs:
       - name: 🧪 Run Prediction Script
         run: |
           echo "Running prediction test..."
-          python test_requirements.py
+          python test-requirements.py
