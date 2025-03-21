@@ -25,9 +25,9 @@ model = mlflow.pyfunc.load_model(model_uri)
 
 # 🧪 Sample input (same structure as training)
 ride = {
-    "PULocationID": "10",
-    "DOLocationID": "50",
-    "trip_distance": 6.2
+    "PULocationID": "116",
+    "DOLocationID": "41",
+    "trip_distance": 2.1
 }
 
 # ⏱️ Make prediction
