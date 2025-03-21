@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - 'test_request.py'
+      - 'test_requirements.py'
       - 'serve/**'
       - 'train/**'
       - '.github/workflows/predict-test.yml'
