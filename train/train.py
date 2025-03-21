@@ -16,7 +16,6 @@ from mlflow.exceptions import MlflowException
 
 def read_dataframe(filename):
     df = pd.read_parquet(filename)
-
     print(f'number of rows for {filename} is {len(df)}')
 
     df['duration'] = df.lpep_dropoff_datetime - df.lpep_pickup_datetime
@@ -65,12 +64,12 @@ def train(train_date='2022-01', validation_date='2022-02'):
         print(f'✅ RMSE on validation is {rmse}')
         mlflow.log_metric('rmse', rmse)
 
-        mlflow.sklearn.log_model(pipeline, artifact_path='model')  # Save model
+        mlflow.sklearn.log_model(pipeline, artifact_path='model')
 
 
 def run():
-    # ✅ Set tracking URI to local MLflow file system for GitHub Actions
-    mlflow.set_tracking_uri("file:///./train/mlruns")
+    # ✅ Use relative tracking directory for GitHub Actions compatibility
+    mlflow.set_tracking_uri("mlruns")
 
     experiment_name = "nyc-taxi-experiment"
 
@@ -80,7 +79,6 @@ def run():
         pass  # already exists
 
     mlflow.set_experiment(experiment_name)
-
     train(train_date='2022-01', validation_date='2022-02')
 
 
