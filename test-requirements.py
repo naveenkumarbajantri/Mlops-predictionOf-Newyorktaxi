@@ -4,9 +4,9 @@ url = "http://127.0.0.1:9696/predict"
 
 ride = {
     "ride": {
-        "PULocationID": 166,
-        "DOLocationID": 239,
-        "trip_distance": 2.53
+        "PULocationID": 42,
+        "DOLocationID": 42,
+        "trip_distance": 0.44
     }
 }
 
