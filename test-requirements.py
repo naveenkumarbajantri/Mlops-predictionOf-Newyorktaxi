@@ -1,9 +1,6 @@
 import requests
-import mlflow
 
-# ✅ Use relative path for GitHub runners
-mlflow.set_tracking_uri("file:./mlruns")
-
+url = "http://localhost:9696/predict"
 ride = {
     "ride": {
         "PULocationID": 10,
@@ -13,9 +10,7 @@ ride = {
 }
 
 try:
-    response = requests.post("http://127.0.0.1:9696/predict", json=ride)
-    prediction = response.json()
-    print("✅ Response from ML Model:")
-    print(prediction)
+    response = requests.post(url, json=ride)
+    print("✅ Prediction from model:", response.json())
 except Exception as e:
-    print("❌ Error connecting to the server:", e)
+    print("❌ Failed to connect:", e)
