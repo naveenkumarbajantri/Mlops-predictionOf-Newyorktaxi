@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        PYTHON_PATH = '"C:\\Users\\Naveen kumar\\AppData\\Local\\Programs\\Python\\Python39"' // <-- wrapped in quotes
+        PYTHON_PATH = '"C:\\Users\\Naveen kumar\\AppData\\Local\\Programs\\Python\\Python39"'
     }
 
     stages {
