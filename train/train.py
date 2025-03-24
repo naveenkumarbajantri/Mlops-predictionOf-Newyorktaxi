@@ -19,7 +19,7 @@ def read_dataframe(filename):
     print(f'Number of rows in {filename}: {len(df)}')
 
     df['duration'] = df.lpep_dropoff_datetime - df.lpep_pickup_datetime
-    df.duration = df.duration.dt.total_seconds() / 60
+    df['duration'] = df['duration'].dt.total_seconds() / 60
 
     df = df[(df.duration >= 1) & (df.duration <= 60)]
 
@@ -31,54 +31,52 @@ def read_dataframe(filename):
 
 def train(train_date='2022-01', validation_date='2022-02'):
     train_path = f'./green_tripdata_{train_date}.parquet'
-    validation_path = f'./green_tripdata_{validation_date}.parquet'
+    val_path = f'./green_tripdata_{validation_date}.parquet'
 
     df_train = read_dataframe(train_path)
-    df_val = read_dataframe(validation_path)
+    df_val = read_dataframe(val_path)
 
-    target = 'duration'
-    y_train = df_train[target].values
-    y_val = df_val[target].values
+    y_train = df_train['duration'].values
+    y_val = df_val['duration'].values
 
-    with mlflow.start_run():
-        categorical = ['PULocationID', 'DOLocationID']
-        numerical = ['trip_distance']
+    categorical = ['PULocationID', 'DOLocationID']
+    numerical = ['trip_distance']
 
-        train_dicts = df_train[categorical + numerical].to_dict(orient='records')
-        val_dicts = df_val[categorical + numerical].to_dict(orient='records')
+    train_dicts = df_train[categorical + numerical].to_dict(orient='records')
+    val_dicts = df_val[categorical + numerical].to_dict(orient='records')
 
+    with mlflow.start_run() as run:
         mlflow.log_params({
-            'categorical': categorical,
-            'numerical': numerical,
+            'train_date': train_date,
+            'validation_date': validation_date,
+            'features': categorical + numerical
         })
 
-        pipeline = make_pipeline(
-            DictVectorizer(),
-            LinearRegression()
-        )
-
+        pipeline = make_pipeline(DictVectorizer(), LinearRegression())
         pipeline.fit(train_dicts, y_train)
         y_pred = pipeline.predict(val_dicts)
 
         rmse = np.sqrt(mean_squared_error(y_val, y_pred))
-        print(f'RMSE on validation set: {rmse}')
-        mlflow.log_metric('rmse', rmse)
+        print(f"RMSE on validation set: {rmse}")
+        mlflow.log_metric("rmse", rmse)
 
-        mlflow.sklearn.log_model(pipeline, artifact_path='model')
+        mlflow.sklearn.log_model(pipeline, artifact_path="model")
+
+        print(f"✅ Model logged under run_id: {run.info.run_id}")
 
 
 def run():
-    mlflow.set_tracking_uri("file:./mlruns")  # Use relative path for Jenkins
-
+    mlflow.set_tracking_uri("file:./mlruns")
     experiment_name = "nyc-taxi-experiment"
+
     try:
-        mlflow.create_experiment(name=experiment_name)
+        mlflow.create_experiment(experiment_name)
     except MlflowException:
-        pass  # If it already exists
+        pass
 
     mlflow.set_experiment(experiment_name)
-    train(train_date='2022-01', validation_date='2022-02')
+    train()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run()
