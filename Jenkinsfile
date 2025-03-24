@@ -9,34 +9,34 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 bat '''
-                "${PYTHON_PATH}\\python.exe" -m pip install --upgrade pip
-                "${PYTHON_PATH}\\python.exe" -m pip install -r train/requirements.txt
-                "${PYTHON_PATH}\\python.exe" -m pip install mlflow pandas scikit-learn flask requests
+                %PYTHON_PATH%\\python.exe -m pip install --upgrade pip
+                %PYTHON_PATH%\\python.exe -m pip install -r train/requirements.txt
+                %PYTHON_PATH%\\python.exe -m pip install mlflow pandas scikit-learn flask requests
                 '''
             }
         }
 
         stage('Train Model') {
             steps {
-                bat """
+                bat '''
                 cd train
-                "${PYTHON_PATH}\\python.exe" train.py
-                """
+                %PYTHON_PATH%\\python.exe train.py
+                '''
             }
         }
 
         stage('Run Prediction') {
             steps {
-                bat """
-                "${PYTHON_PATH}\\python.exe" test-requirements.py
-                """
+                bat '''
+                %PYTHON_PATH%\\python.exe test-requirements.py
+                '''
             }
         }
     }
 
     post {
         always {
-            echo '✅ CI/CD pipeline finished.'
+            echo '✅ CI/CD/CT pipeline finished.'
         }
     }
 }
