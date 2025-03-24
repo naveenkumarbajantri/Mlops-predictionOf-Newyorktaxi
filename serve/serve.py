@@ -1,47 +1,40 @@
 import os
 import mlflow
+import mlflow.pyfunc
 from flask import Flask, request, jsonify
 
-# ✅ Set MLflow tracking URI (this should match the location used during training)
-mlflow.set_tracking_uri("http://localhost:5000")  # Use MLflow UI tracking for artifact support
+# Set tracking URI to local mlruns directory
+mlflow.set_tracking_uri("file:train/mlruns")
 
-# ✅ Use your actual run ID from the MLflow experiment that logged the model
-MODEL_URI = "runs:/62906aa8f8bb43aba63ae583e37fb566/model"
-MODEL_VERSION = os.getenv("MODEL_VERSION", "v1")  # Optional version display
+# Get latest run_id from the experiment
+EXPERIMENT_NAME = "nyc-taxi-experiment"
+client = mlflow.tracking.MlflowClient()
+experiment = client.get_experiment_by_name(EXPERIMENT_NAME)
 
-# ✅ Load model from MLflow
-model = mlflow.pyfunc.load_model(MODEL_URI)
+if experiment is None:
+    raise Exception(f"Experiment '{EXPERIMENT_NAME}' not found.")
 
-# ✅ Initialize Flask app
+# Get the most recent run in this experiment
+runs = client.search_runs(experiment.experiment_id, order_by=["start_time desc"], max_results=1)
+if not runs:
+    raise Exception("No runs found in the experiment.")
+
+run_id = runs[0].info.run_id
+print(f"✅ Serving model from run_id: {run_id}")
+
+# Load the model
+MODEL_PATH = f"train/mlruns/{experiment.experiment_id}/{run_id}/artifacts/model"
+model = mlflow.pyfunc.load_model(MODEL_PATH)
+
+# Flask app
 app = Flask("duration-prediction")
 
-
-# 🔧 Function to prepare input features
-def prepare_features(ride):
-    return {
-        "PULocationID": str(ride["PULocationID"]),
-        "DOLocationID": str(ride["DOLocationID"]),
-        "trip_distance": ride["trip_distance"]
-    }
-
-
-# 🚀 Prediction endpoint
 @app.route("/predict", methods=["POST"])
-def predict_endpoint():
-    ride = request.get_json()["ride"]
-    features = prepare_features(ride)
-    pred = model.predict([features])
+def predict():
+    ride = request.get_json()
+    features = [ride]
+    prediction = model.predict(features)
+    return jsonify({"prediction": float(prediction[0])})
 
-    result = {
-        "prediction": {
-            "duration": float(pred[0])
-        },
-        "model_version": MODEL_VERSION
-    }
-
-    return jsonify(result)
-
-
-# ▶️ Start the server
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=9696)
