@@ -1,34 +1,42 @@
 pipeline {
     agent any
 
+    environment {
+        PYTHON_PATH = "C:\\Users\\Naveen kumar\\AppData\\Local\\Programs\\Python\\Python39"
+    }
+
     stages {
         stage('Install Dependencies') {
             steps {
-                bat 'pip install -r train/requirements.txt || pip install mlflow pandas scikit-learn flask requests'
+                bat '''
+                "${PYTHON_PATH}\\python.exe" -m pip install --upgrade pip
+                "${PYTHON_PATH}\\python.exe" -m pip install -r train/requirements.txt
+                "${PYTHON_PATH}\\python.exe" -m pip install mlflow pandas scikit-learn flask requests
+                '''
             }
         }
 
         stage('Train Model') {
             steps {
-                dir('train') {
-                    bat 'python train.py'
-                }
+                bat """
+                cd train
+                "${PYTHON_PATH}\\python.exe" train.py
+                """
             }
         }
 
-        stage('Start API Server') {
+        stage('Run Prediction') {
             steps {
-                dir('serve') {
-                    bat 'start /B python serve.py'
-                }
+                bat """
+                "${PYTHON_PATH}\\python.exe" test-requirements.py
+                """
             }
         }
+    }
 
-        stage('Test Prediction') {
-            steps {
-                bat 'timeout /t 5'
-                bat 'python test-requirements.py'
-            }
+    post {
+        always {
+            echo '✅ CI/CD pipeline finished.'
         }
     }
 }
