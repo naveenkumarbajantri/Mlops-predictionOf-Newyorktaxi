@@ -16,7 +16,7 @@ from mlflow.exceptions import MlflowException
 
 def read_dataframe(filename):
     df = pd.read_parquet(filename)
-    print(f'number of rows for {filename} is {len(df)}')
+    print(f'Number of rows in {filename}: {len(df)}')
 
     df['duration'] = df.lpep_dropoff_datetime - df.lpep_pickup_datetime
     df.duration = df.duration.dt.total_seconds() / 60
@@ -61,22 +61,20 @@ def train(train_date='2022-01', validation_date='2022-02'):
         y_pred = pipeline.predict(val_dicts)
 
         rmse = np.sqrt(mean_squared_error(y_val, y_pred))
-        print(f'✅ RMSE on validation is {rmse}')
+        print(f'RMSE on validation set: {rmse}')
         mlflow.log_metric('rmse', rmse)
 
         mlflow.sklearn.log_model(pipeline, artifact_path='model')
 
 
 def run():
-    # ✅ Use relative mlruns path for GitHub Actions compatibility
-    mlflow.set_tracking_uri("file:./mlruns")
+    mlflow.set_tracking_uri("file:./mlruns")  # Use relative path for Jenkins
 
     experiment_name = "nyc-taxi-experiment"
-
     try:
         mlflow.create_experiment(name=experiment_name)
     except MlflowException:
-        pass  # already exists
+        pass  # If it already exists
 
     mlflow.set_experiment(experiment_name)
     train(train_date='2022-01', validation_date='2022-02')
