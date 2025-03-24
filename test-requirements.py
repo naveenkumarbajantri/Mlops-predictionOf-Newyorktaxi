@@ -1,33 +1,33 @@
+import os
 import mlflow
 import mlflow.pyfunc
 from mlflow.tracking import MlflowClient
 
-# Set your MLflow tracking URI (adjust path if needed)
+# Set same tracking URI as training
 mlflow.set_tracking_uri("file:./mlruns")
 
-# Set the experiment name used during training
 experiment_name = "nyc-taxi-experiment"
 client = MlflowClient()
 
-# Get experiment by name
+# Ensure experiment exists
 experiment = client.get_experiment_by_name(experiment_name)
+if experiment is None:
+    raise Exception(f"❌ Experiment '{experiment_name}' not found.")
 
-# Get the latest run for the experiment
+# Get latest run
 runs = client.search_runs(experiment.experiment_id, order_by=["start_time desc"], max_results=1)
 run_id = runs[0].info.run_id
 
-# Load the model from the latest run
+# Load model from latest run
 model_uri = f"runs:/{run_id}/model"
 model = mlflow.pyfunc.load_model(model_uri)
 
-# Sample input
+# Prepare input and predict
 ride = {
     "PULocationID": "10",
     "DOLocationID": "50",
     "trip_distance": 6.2
 }
-
-features = [ride]
-prediction = model.predict(features)
+prediction = model.predict([ride])
 
 print(f"✅ Prediction from MLflow run {run_id}: {prediction}")
