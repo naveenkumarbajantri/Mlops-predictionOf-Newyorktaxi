@@ -16,43 +16,47 @@ from mlflow.exceptions import MlflowException
 
 def read_dataframe(filename):
     df = pd.read_parquet(filename)
-    print(f'Number of rows in {filename}: {len(df)}')
+    print(f"Number of rows in {filename}: {len(df)}")
 
-    df['duration'] = df.lpep_dropoff_datetime - df.lpep_pickup_datetime
-    df['duration'] = df['duration'].dt.total_seconds() / 60
+    df["duration"] = df.lpep_dropoff_datetime - df.lpep_pickup_datetime
+    df.duration = df.duration.dt.total_seconds() / 60
 
     df = df[(df.duration >= 1) & (df.duration <= 60)]
 
-    categorical = ['PULocationID', 'DOLocationID']
+    categorical = ["PULocationID", "DOLocationID"]
     df[categorical] = df[categorical].astype(str)
 
     return df
 
 
-def train(train_date='2022-01', validation_date='2022-02'):
-    train_path = f'./green_tripdata_{train_date}.parquet'
-    val_path = f'./green_tripdata_{validation_date}.parquet'
+def train(train_date="2022-01", validation_date="2022-02"):
+    train_path = f"./green_tripdata_{train_date}.parquet"
+    validation_path = f"./green_tripdata_{validation_date}.parquet"
 
     df_train = read_dataframe(train_path)
-    df_val = read_dataframe(val_path)
+    df_val = read_dataframe(validation_path)
 
-    y_train = df_train['duration'].values
-    y_val = df_val['duration'].values
-
-    categorical = ['PULocationID', 'DOLocationID']
-    numerical = ['trip_distance']
-
-    train_dicts = df_train[categorical + numerical].to_dict(orient='records')
-    val_dicts = df_val[categorical + numerical].to_dict(orient='records')
+    target = "duration"
+    y_train = df_train[target].values
+    y_val = df_val[target].values
 
     with mlflow.start_run() as run:
+        categorical = ["PULocationID", "DOLocationID"]
+        numerical = ["trip_distance"]
+
+        train_dicts = df_train[categorical + numerical].to_dict(orient="records")
+        val_dicts = df_val[categorical + numerical].to_dict(orient="records")
+
         mlflow.log_params({
-            'train_date': train_date,
-            'validation_date': validation_date,
-            'features': categorical + numerical
+            "categorical": categorical,
+            "numerical": numerical,
         })
 
-        pipeline = make_pipeline(DictVectorizer(), LinearRegression())
+        pipeline = make_pipeline(
+            DictVectorizer(),
+            LinearRegression()
+        )
+
         pipeline.fit(train_dicts, y_train)
         y_pred = pipeline.predict(val_dicts)
 
@@ -62,17 +66,18 @@ def train(train_date='2022-01', validation_date='2022-02'):
 
         mlflow.sklearn.log_model(pipeline, artifact_path="model")
 
-        print(f"✅ Model logged under run_id: {run.info.run_id}")
+        # Print run_id safely (no unicode emoji)
+        print("Model logged under run_id:", run.info.run_id)
 
 
 def run():
-    mlflow.set_tracking_uri("file:./mlruns")
-    experiment_name = "nyc-taxi-experiment"
+    mlflow.set_tracking_uri("file:./mlruns")  # Local path for Jenkins
 
+    experiment_name = "nyc-taxi-experiment"
     try:
-        mlflow.create_experiment(experiment_name)
+        mlflow.create_experiment(name=experiment_name)
     except MlflowException:
-        pass
+        pass  # already exists
 
     mlflow.set_experiment(experiment_name)
     train()
