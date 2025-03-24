@@ -4,14 +4,14 @@ pipeline {
     stages {
         stage('Install Dependencies') {
             steps {
-                sh 'pip install -r train/requirements.txt'
+                bat 'pip install -r train/requirements.txt || pip install mlflow pandas scikit-learn flask requests'
             }
         }
 
         stage('Train Model') {
             steps {
                 dir('train') {
-                    sh 'python train.py'
+                    bat 'python train.py'
                 }
             }
         }
@@ -19,16 +19,15 @@ pipeline {
         stage('Start API Server') {
             steps {
                 dir('serve') {
-                    // run serve.py in the background
-                    sh 'nohup python serve.py &'
+                    bat 'start /B python serve.py'
                 }
             }
         }
 
         stage('Test Prediction') {
             steps {
-                sh 'sleep 10'  // wait for serve.py to start
-                sh 'python test-requirements.py'
+                bat 'timeout /t 5'
+                bat 'python test-requirements.py'
             }
         }
     }
