@@ -2,41 +2,41 @@ pipeline {
     agent any
 
     environment {
-        PYTHON_PATH = '"C:\\Users\\Naveen kumar\\AppData\\Local\\Programs\\Python\\Python39"'
+        PYTHON = "C:\\Users\\Naveen kumar\\AppData\\Local\\Programs\\Python\\Python39\\python.exe"
     }
 
     stages {
         stage('Install Dependencies') {
             steps {
-                bat '''
-                %PYTHON_PATH%\\python.exe -m pip install --upgrade pip
-                %PYTHON_PATH%\\python.exe -m pip install -r train/requirements.txt
-                %PYTHON_PATH%\\python.exe -m pip install mlflow pandas scikit-learn flask requests
-                '''
+                bat "%PYTHON% -m pip install --upgrade pip"
+                bat "%PYTHON% -m pip install -r train\\requirements.txt"
+                bat "%PYTHON% -m pip install flask requests mlflow scikit-learn pandas"
             }
         }
 
         stage('Train Model') {
             steps {
-                bat '''
-                cd train
-                %PYTHON_PATH%\\python.exe train.py
-                '''
+                bat "cd train && \"%PYTHON%\" train.py"
+            }
+        }
+
+        stage('Start Server') {
+            steps {
+                bat "start \"\" \"%PYTHON%\" serve.py"
+                sleep(time: 10, unit: 'SECONDS')
             }
         }
 
         stage('Run Prediction') {
             steps {
-                bat '''
-                %PYTHON_PATH%\\python.exe test-requirements.py
-                '''
+                bat "\"%PYTHON%\" test-requirements.py"
             }
         }
     }
 
     post {
         always {
-            echo 'CI/CD/CT pipeline finished.'
+            echo '✅ CI/CD/CT pipeline finished.'
         }
     }
 }
