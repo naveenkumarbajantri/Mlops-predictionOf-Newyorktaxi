@@ -36,7 +36,7 @@ pipeline {
 
     post {
         always {
-            echo '✅ CI/CD/CT pipeline finished.'
+            echo 'CI/CD/CT pipeline finished.'
         }
     }
 }
