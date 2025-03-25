@@ -17,28 +17,28 @@ jobs:
       PYTHON_PATH: C:\Users\Naveen kumar\AppData\Local\Programs\Python\Python39
 
     steps:
-      - name: ⬇️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: ⚙️ Set up Python
+      - name: set up Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
 
-      - name: 📦 Install Dependencies
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r train/requirements.txt
           pip install mlflow pandas scikit-learn flask requests
 
-      - name: 🧠 Train Model
+      - name: Train Model
         run: |
           cd train
           python train.py
 
-      - name: 🧪 Run Prediction
+      - name: Run Prediction
         run: |
           python test-requirements.py
 
-      - name: ✅ Finished
+      - name: Finished
         run: echo "🎉 CI/CD/CT pipeline completed."
