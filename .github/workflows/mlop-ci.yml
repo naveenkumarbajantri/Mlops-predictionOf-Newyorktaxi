@@ -1,4 +1,4 @@
-name: MLOps CI/CD/CT Pipeline
+name: MLflow CI/CD Pipeline
 
 on:
   push:
@@ -7,38 +7,45 @@ on:
     paths:
       - '**.py'
       - 'train/**'
+      - 'serve/**'
+      - 'test-requirements.py'
       - '.github/workflows/mlops-ci.yml'
 
 jobs:
-  mlops-pipeline:
-    runs-on: windows-latest  # Using Windows runner to match your local environment
-
-    env:
-      PYTHON_PATH: C:\Users\Naveen kumar\AppData\Local\Programs\Python\Python39
+  mlops:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: ⬇️ Checkout repository
         uses: actions/checkout@v3
 
-      - name: set up Python
+      - name: ⚙️ Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: '3.9'
 
-      - name: Install Dependencies
+      - name: 📦 Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
           pip install -r train/requirements.txt
           pip install mlflow pandas scikit-learn flask requests
 
-      - name: Train Model
+      - name: 🏋️ Train model
         run: |
+          source venv/bin/activate
           cd train
           python train.py
 
-      - name: Run Prediction
+      - name: 🔍 Get latest MLflow run ID
+        id: get_run_id
         run: |
-          python test-requirements.py
+          source venv/bin/activate
+          export RUN_ID=$(ls -td train/mlruns/*/* | head -1 | cut -d '/' -f3)
+          echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
 
-      - name: Finished
-        run: echo "CI/CD/CT pipeline completed."
+      - name: 🚀 Run Predictions
+        run: |
+          source venv/bin/activate
+          python test-requirements.py
