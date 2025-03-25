@@ -41,4 +41,4 @@ jobs:
           python test-requirements.py
 
       - name: Finished
-        run: echo "🎉 CI/CD/CT pipeline completed."
+        run: echo "CI/CD/CT pipeline completed."
