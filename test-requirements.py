@@ -5,7 +5,7 @@ model = mlflow.pyfunc.load_model(MODEL_PATH)
 
 ride = {
     "PULocationID": "260",
-    "DOLocationID": "2600",
+    "DOLocationID": "260",
     "trip_distance": 1.9
 }
 
