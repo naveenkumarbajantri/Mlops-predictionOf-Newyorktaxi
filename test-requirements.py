@@ -4,9 +4,9 @@ MODEL_PATH = "train/mlruns/602170594853194749/a3b1ea226ea646aeb0fa88ca97980086/a
 model = mlflow.pyfunc.load_model(MODEL_PATH)
 
 ride = {
-    "PULocationID": "260",
-    "DOLocationID": "260",
-    "trip_distance": 1.9
+    "PULocationID": "43",
+    "DOLocationID": "238",
+    "trip_distance": 1.16
 }
 
 features = [ride]
